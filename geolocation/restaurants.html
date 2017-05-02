@@ -1,0 +1,47 @@
+<?php
+	$lat = (float)$_GET['lat'];
+	$lon = (float)$_GET['lon'];
+	$mongo = new MongoClient();
+	$collection = $mongo->selectDB('geolocation')->selectCollection('restaurants');
+	//query the collection with given latitude and longitude
+	$query = array('location' => array('$near' => array($lat,$lon)));
+	$cursor = $collection->find($query);
+	$response = array();
+	while($doc = $cursor->getNext())
+	{
+		$obj = array(
+					'name' => $doc['name'],
+					'serves'=> $doc['serves'],
+					'latitude' => $doc['location'][0],
+					'longitude' => $doc['location'][1]
+					);
+		array_push($response, $obj);
+	}
+	//convert the array in JSON and send back to client
+	echo json_encode($response);
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link rel="stylesheet" href="styles.css"/>
+		<style type="text/css" media="screen">
+		div#map {
+		width:450px;
+		height: 400px;
+		}
+		</style>
+		<title>Restaurants near me</title>
+	</head>
+	<body>
+		<div id="contentarea">
+			<div id="innercontentarea">
+				<h2>Restaurants near me</h2>
+				<div id="map"></div>
+				<br/>
+			</div>
+		</div>
+		<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+		<script type="text/javascript" src="restaurants.js"></script>
+	</body>
+</html>
